@@ -60,6 +60,63 @@
           font-size: 25px;
           font-weight: 600;
         }
+        .topbar {
+          width: 100%;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 10px;
+          gap: 12px;
+          position: relative;
+
+          .success-text {
+            position: absolute;
+            top: 48px;
+            left: 0;
+            font-size: 14px;
+            font-weight: 500;
+            height: 30px;
+            border-radius: 20px;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            color: green;
+            width: 100%;
+            background-color: rgba(214, 247, 214, 0.358);
+            
+          }
+        }
+
+        .greeting {
+          font-size: 18px;
+          color: #012665;
+          font-weight: 600;
+        }
+
+        .logout-form {
+          margin: 0;
+        }
+
+        .logout-btn {
+          height: 40px;
+          width: 40px;
+          border-radius: 50%;
+          border: none;
+          background: #ff5845;
+          color: white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition:
+            transform 120ms ease,
+            box-shadow 120ms ease;
+        }
+
+        .logout-btn:hover {
+          transform: translateY(-3px);
+          box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+        }
 
         nav {
           height: 50px;
@@ -115,6 +172,7 @@
               border: 2px solid #e2e2e2;
               border-radius: 100%;
               cursor: pointer;
+              z-index: 10;
             }
 
             footer {
@@ -139,7 +197,6 @@
 
             header {
               display: flex;
-              align-items: center;
               gap: 10px;
 
               button {
@@ -164,28 +221,192 @@
           width: 95%;
           padding-inline: 15px;
         }
+        .greeting {
+          font-size: 16px;
+        }
+
+        .logout-btn {
+          height: 36px;
+          width: 36px;
+        }
       }
     </style>
   </head>
   <body>
+    <% if (error) { %>
+            <script>
+                alert("<%= error %>")
+            </script>
+       <% } %>
+
     <div class="app">
       <div class="app-holder">
         <div class="app-mainHolder">
+          <header class="topbar">
+            <p class="success-text">Task deleted successfully</p>
+            <div class="greeting">
+              Hi,
+              <span class="username"
+                ><%= (user && user.username) ? user.username.length > 30 ?
+                user.username.slice(0, 30) + '...' : user.username : 'User'
+                %></span
+              >
+            </div>
+            <form action="/v1/auth/logout" method="post" class="logout-form">
+              <button type="submit" class="logout-btn" aria-label="Log out">
+                <svg
+                  viewBox="0 0 24 24"
+                  width="20"
+                  height="20"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M16 13v-2H7V8l-5 4 5 4v-3zM20 3H10v2h10v14H10v2h10a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2z"
+                  />
+                </svg>
+              </button>
+            </form>
+          </header>
           <h2>To-Do List</h2>
-          <form action="/tasks" method="post">
+          <form action="/v1/tasks" method="post">
             <nav>
               <input
                 type="text"
                 placeholder="add your task here"
-                name="task"
+                name="title"
                 required
               />
               <button type="submit">Add</button>
             </nav>
           </form>
-          <main></main>
+          <main id="todolist-holder"></main>
         </div>
       </div>
     </div>
+    <script>
+
+      const renderTaskInElement = (response) => {
+        const tasks = response.data;
+        if (tasks.length <= 0 || !tasks) {
+          return;
+        }
+        const todolist_holder = document.getElementById("todolist-holder");
+        tasks.forEach((task) => {
+          const article = document.createElement("article");
+          if (task.status === "deleted") {
+            return;
+          }
+          if (task.status === "pending") {
+            article.innerHTML = `<aside></aside><p>${task.title.length >= 30
+                          ? (
+                              task.title.charAt(0).toUpperCase() +
+                              task.title.slice(1)
+                            ).substr(0, 30) + " ..."
+                          : task.title.charAt(0).toUpperCase() +
+                            task.title.slice(1)}</p><header><section><svg stroke="green" fill="green" stroke-width="0" viewBox="0 0 24 24" font-size="18" color="green" cursor="pointer" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg" style="color: green;"><g id="Edit"><g><path d="M3.548,20.938h16.9a.5.5,0,0,0,0-1H3.548a.5.5,0,0,0,0,1Z"></path><path d="M9.71,17.18a2.587,2.587,0,0,0,1.12-.65l9.54-9.54a1.75,1.75,0,0,0,0-2.47l-.94-.93a1.788,1.788,0,0,0-2.47,0L7.42,13.12a2.473,2.473,0,0,0-.64,1.12L6.04,17a.737.737,0,0,0,.19.72.767.767,0,0,0,.53.22Zm.41-1.36a1.468,1.468,0,0,1-.67.39l-.97.26-1-1,.26-.97a1.521,1.521,0,0,1,.39-.67l.38-.37,1.99,1.99Zm1.09-1.08L9.22,12.75l6.73-6.73,1.99,1.99Zm8.45-8.45L18.65,7.3,16.66,5.31l1.01-1.02a.748.748,0,0,1,1.06,0l.93.94A.754.754,0,0,1,19.66,6.29Z"></path></g></g></svg></section><button>x</button></header>`;
+
+            article.childNodes.forEach((child, index) => {
+              if (index === 0) {
+                child.addEventListener("click", () => onCompleteTask(task._id));
+              }
+              if (index === 2) {
+                child?.childNodes[0]?.addEventListener("click", ()=> {
+                                    article.innerHTML = `<aside></aside><input
+                        type="text"
+                        autoFocus
+                        required
+                        id="edit-input"
+                        value="${task.title}"
+                        }
+                      /><header><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" font-size="18" color="green" cursor="pointer" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg" style="color: green;"><path fill="none" d="M0 0h24v24H0V0z"></path><path d="M11 8v3H8v2h3v3h2v-3h3v-2h-3V8h-2zm2-5.95v3.03c3.39.49 6 3.39 6 6.92 0 .9-.18 1.75-.48 2.54l2.6 1.53c.56-1.24.88-2.62.88-4.07 0-5.18-3.95-9.45-9-9.95zM12 19c-3.87 0-7-3.13-7-7 0-3.53 2.61-6.43 6-6.92V2.05c-5.06.5-9 4.76-9 9.95 0 5.52 4.47 10 9.99 10 3.31 0 6.24-1.61 8.06-4.09l-2.6-1.53A6.95 6.95 0 0 1 12 19z"></path></svg></header>`
+                      article.childNodes[2]?.addEventListener("click",()=> onclickSave(task._id,article))
+                });
+                child?.childNodes[1]?.addEventListener("click", () => onclickDelete(task._id));
+                
+              }
+            });
+            todolist_holder.appendChild(article);
+          }
+          if (task.status === "completed") {
+            article.innerHTML = `<footer><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 512 512" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg" ><path d="M186.301 339.893L96 249.461l-32 30.507L186.301 402 448 140.506 416 110z"></path></svg></footer><del>
+                ${task.title.length >= 30
+                      ? (
+                          task.title.charAt(0).toUpperCase() + task.title.slice(1)
+                        ).substr(0, 30) + " ..." : task.title.charAt(0).toUpperCase() + task.title.slice(1)}</del><header><button>x</button></header>`
+                        todolist_holder.appendChild(article);
+                        article.childNodes.forEach((child, index) => {
+                          if (index === 2) {
+                            child?.childNodes[0]?.addEventListener("click", () => onclickDelete(task._id));
+                          }
+                        })
+          }
+        });
+      };
+      const getAllTaks = async () => {
+        fetch("/v1/tasks")
+          .then((res) => res.json())
+          .then((data) => {
+            renderTaskInElement(data);
+          });
+      };
+      getAllTaks();
+
+      function onCompleteTask(id) {
+        fetch(`/v1/tasks/${id}`,{
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({status: "completed"}),
+        }).then((res)=>res.json()).then((data)=>{
+            if (data.message) {
+                window.location.reload();
+            }
+        })
+      }
+
+      function onclickSave(id,element) {
+        if(!confirm("Click OK to confirm action")){
+            return
+        }
+        const title = element.childNodes[1].value
+         fetch(`/v1/tasks/${id}`,{
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({title}),
+        }).then((res)=>res.json()).then((data)=>{
+            const task = data.data
+            if (data.message) {
+                document.querySelector(".success-text").textContent = "Task updated successfully"
+                 document.querySelector(".success-text").style.display = "flex";
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            }})
+      }
+
+      function onclickDelete(id) {
+        if(!confirm("Click OK to confirm action")){
+            return
+        }
+         fetch(`/v1/tasks/${id}`,{
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({status: "deleted"}),
+        }).then((res)=>res.json()).then((data)=>{
+            if (data.message) {
+                document.querySelector(".success-text").style.display = "flex";
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            }
+        })
+      }
+    </script>
   </body>
 </html>

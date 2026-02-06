@@ -1,21 +1,20 @@
 const express = require("express");
-const connectToDB = require("./db");
 const userRouter = require("./routers/userRouter");
 const authRouter = require("./routers/authRouter");
 const session = require("express-session");
 const passport = require("passport");
 const User = require("./models/users");
 const connectEnsureLogin = require("connect-ensure-login");
+const taskRouter = require("./routers/taskRouter");
 require("dotenv").config();
 
 const app = express();
 
+app.use(express.json());
 // parse application/x-www-form-urlencoded (HTML form submissions)
 app.use(express.urlencoded({ extended: true }));
 
 app.set("view engine", "ejs");
-
-const PORT = process.env.PORT;
 
 app.use(
   session({
@@ -37,7 +36,8 @@ passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
 app.use("/v1/auth", authRouter);
-app.use("/v1/users", userRouter);
+// app.use("/v1/users", userRouter);
+app.use("/v1/tasks", connectEnsureLogin.ensureLoggedIn("/"), taskRouter);
 
 app.get("/", (req, res) => {
   const errorObj =
@@ -62,7 +62,13 @@ app.get("/sign-up", (req, res) => {
 });
 
 app.get("/my-todo", connectEnsureLogin.ensureLoggedIn("/"), (req, res) => {
-  res.render("todo-app");
+  const errorObj =
+    req.session && req.session.formError ? req.session.formError : null;
+  //   if (req.session) delete req.session.formError;
+  res.render("todo-app", {
+    user: req.user || null,
+    error: errorObj?.error || null,
+  });
 });
 
 app.use((err, req, res, next) => {
@@ -70,8 +76,4 @@ app.use((err, req, res, next) => {
   res.status(500).send("Something went wrong");
 });
 
-connectToDB();
-
-app.listen(PORT, () => {
-  console.log(`Server running at http://localhost:${PORT}`);
-});
+module.exports = app;
