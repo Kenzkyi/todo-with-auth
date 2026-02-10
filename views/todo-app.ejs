@@ -273,9 +273,10 @@
             <nav>
               <input
                 type="text"
-                placeholder="add your task here"
+                placeholder="add your task here (max 30 characters)"
                 name="title"
                 required
+                maxlength="30"
               />
               <button type="submit">Add</button>
             </nav>
@@ -298,13 +299,7 @@
             return;
           }
           if (task.status === "pending") {
-            article.innerHTML = `<aside></aside><p>${task.title.length >= 30
-                          ? (
-                              task.title.charAt(0).toUpperCase() +
-                              task.title.slice(1)
-                            ).substr(0, 30) + " ..."
-                          : task.title.charAt(0).toUpperCase() +
-                            task.title.slice(1)}</p><header><section><svg stroke="green" fill="green" stroke-width="0" viewBox="0 0 24 24" font-size="18" color="green" cursor="pointer" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg" style="color: green;"><g id="Edit"><g><path d="M3.548,20.938h16.9a.5.5,0,0,0,0-1H3.548a.5.5,0,0,0,0,1Z"></path><path d="M9.71,17.18a2.587,2.587,0,0,0,1.12-.65l9.54-9.54a1.75,1.75,0,0,0,0-2.47l-.94-.93a1.788,1.788,0,0,0-2.47,0L7.42,13.12a2.473,2.473,0,0,0-.64,1.12L6.04,17a.737.737,0,0,0,.19.72.767.767,0,0,0,.53.22Zm.41-1.36a1.468,1.468,0,0,1-.67.39l-.97.26-1-1,.26-.97a1.521,1.521,0,0,1,.39-.67l.38-.37,1.99,1.99Zm1.09-1.08L9.22,12.75l6.73-6.73,1.99,1.99Zm8.45-8.45L18.65,7.3,16.66,5.31l1.01-1.02a.748.748,0,0,1,1.06,0l.93.94A.754.754,0,0,1,19.66,6.29Z"></path></g></g></svg></section><button>x</button></header>`;
+            article.innerHTML = `<aside></aside><p>${task.title}</p><header><section><svg stroke="green" fill="green" stroke-width="0" viewBox="0 0 24 24" font-size="18" color="green" cursor="pointer" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg" style="color: green;"><g id="Edit"><g><path d="M3.548,20.938h16.9a.5.5,0,0,0,0-1H3.548a.5.5,0,0,0,0,1Z"></path><path d="M9.71,17.18a2.587,2.587,0,0,0,1.12-.65l9.54-9.54a1.75,1.75,0,0,0,0-2.47l-.94-.93a1.788,1.788,0,0,0-2.47,0L7.42,13.12a2.473,2.473,0,0,0-.64,1.12L6.04,17a.737.737,0,0,0,.19.72.767.767,0,0,0,.53.22Zm.41-1.36a1.468,1.468,0,0,1-.67.39l-.97.26-1-1,.26-.97a1.521,1.521,0,0,1,.39-.67l.38-.37,1.99,1.99Zm1.09-1.08L9.22,12.75l6.73-6.73,1.99,1.99Zm8.45-8.45L18.65,7.3,16.66,5.31l1.01-1.02a.748.748,0,0,1,1.06,0l.93.94A.754.754,0,0,1,19.66,6.29Z"></path></g></g></svg></section><button>x</button></header>`;
 
             article.childNodes.forEach((child, index) => {
               if (index === 0) {
@@ -318,6 +313,7 @@
                         required
                         id="edit-input"
                         value="${task.title}"
+                         maxlength="30"
                         }
                       /><header><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" font-size="18" color="green" cursor="pointer" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg" style="color: green;"><path fill="none" d="M0 0h24v24H0V0z"></path><path d="M11 8v3H8v2h3v3h2v-3h3v-2h-3V8h-2zm2-5.95v3.03c3.39.49 6 3.39 6 6.92 0 .9-.18 1.75-.48 2.54l2.6 1.53c.56-1.24.88-2.62.88-4.07 0-5.18-3.95-9.45-9-9.95zM12 19c-3.87 0-7-3.13-7-7 0-3.53 2.61-6.43 6-6.92V2.05c-5.06.5-9 4.76-9 9.95 0 5.52 4.47 10 9.99 10 3.31 0 6.24-1.61 8.06-4.09l-2.6-1.53A6.95 6.95 0 0 1 12 19z"></path></svg></header>`
                       article.childNodes[2]?.addEventListener("click",()=> onclickSave(task._id,article))
@@ -330,10 +326,7 @@
           }
           if (task.status === "completed") {
             article.innerHTML = `<footer><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 512 512" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg" ><path d="M186.301 339.893L96 249.461l-32 30.507L186.301 402 448 140.506 416 110z"></path></svg></footer><del>
-                ${task.title.length >= 30
-                      ? (
-                          task.title.charAt(0).toUpperCase() + task.title.slice(1)
-                        ).substr(0, 30) + " ..." : task.title.charAt(0).toUpperCase() + task.title.slice(1)}</del><header><button>x</button></header>`
+                        ${task.title}</del><header><button>x</button></header>`
                         todolist_holder.appendChild(article);
                         article.childNodes.forEach((child, index) => {
                           if (index === 2) {
@@ -367,10 +360,14 @@
       }
 
       function onclickSave(id,element) {
+        const title = element.childNodes[1].value
+        if (title.trim() === "") {
+          alert("Title cannot be empty");
+          return;
+        }
         if(!confirm("Click OK to confirm action")){
             return
         }
-        const title = element.childNodes[1].value
          fetch(`/v1/tasks/${id}`,{
             method: "PATCH",
             headers: {

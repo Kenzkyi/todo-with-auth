@@ -1,5 +1,4 @@
 const express = require("express");
-const userRouter = require("./routers/userRouter");
 const authRouter = require("./routers/authRouter");
 const session = require("express-session");
 const passport = require("passport");
@@ -18,7 +17,7 @@ app.set("view engine", "ejs");
 
 app.use(
   session({
-    saveUninitialized: true,
+    saveUninitialized: false,
     resave: false,
     secret: process.env.SESSION_SECRET,
     cookie: {

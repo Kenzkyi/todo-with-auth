@@ -93,7 +93,7 @@ describe("Tasks API", () => {
 
     const response = await request(app)
       .patch(`/v1/tasks/${task_id}`)
-      .send("title=i want to play")
+      .send("title=a new born baby")
       .set("Cookie", cookie);
 
     const newTodo = await Task.findById(task_id);
